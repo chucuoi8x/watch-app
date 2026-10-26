@@ -16,43 +16,60 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        android:layout_marginTop="16dp"/>
 
     <TextView
         android:id="@+id/tvPermissionStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Permission status: Checking..."
-        android:textSize="16sp"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/tvStatus"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="8dp"/>
 
-    <Button
-        android:id="@+id/btnGrantPermission"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/btnContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Grant Notification Access"
-        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/tvPermissionStatus"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btnGrantPermission"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grant Permission"
+            android:visibility="gone"
+            android:textSize="12sp"/>
+
+        <Button
+            android:id="@+id/btnShowRawLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Raw Logs"
+            android:textSize="12sp"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvLogs"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:text="Logs will appear here..."
-        android:textSize="14sp"
+        android:textSize="13sp"
+        android:fontFamily="monospace"
         android:background="#F5F5F5"
         android:padding="12dp"
         android:scrollbars="vertical"
-        app:layout_constraintTop_toBottomOf="@id/btnGrantPermission"
+        app:layout_constraintTop_toBottomOf="@id/btnContainer"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="8dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

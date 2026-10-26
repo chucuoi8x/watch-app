@@ -13,10 +13,13 @@ class CallNotificationListener : NotificationListenerService() {
             "com.facebook.orca"
         )
 
-        // Singleton để MainActivity có thể truy cập logs
         var instance: CallNotificationListener? = null
         private val _callLogs = mutableListOf<CallNotification>()
         val callLogs: List<CallNotification> get() = _callLogs.toList()
+
+        // Raw logs for debugging
+        private val _rawLogs = mutableListOf<String>()
+        val rawLogs: List<String> get() = _rawLogs.toList()
     }
 
     override fun onCreate() {
@@ -44,44 +47,44 @@ class CallNotificationListener : NotificationListenerService() {
 
         val title = extras?.getCharSequence("android.title")?.toString() ?: ""
         val text = extras?.getCharSequence("android.text")?.toString() ?: ""
+        val bigText = extras?.getCharSequence("android.bigText")?.toString() ?: ""
+        val summary = extras?.getCharSequence("android.summaryText")?.toString() ?: ""
 
-        Log.d(TAG, "Raw notification from $packageName:")
-        Log.d(TAG, "  Title: $title")
-        Log.d(TAG, "  Text: $text")
+        // Log raw data for debugging
+        val rawLog = """
+            === $packageName ===
+            Title: "$title"
+            Text: "$text"
+            BigText: "$bigText"
+            Summary: "$summary"
+            Category: ${notification.category}
+            Time: ${sbn.postTime}
+        """.trimIndent()
+
+        Log.d(TAG, rawLog)
+        _rawLogs.add(0, rawLog)
+        if (_rawLogs.size > 20) {
+            _rawLogs.removeAt(_rawLogs.size - 1)
+        }
 
         // Parse notification
         val callNotification = NotificationParser.parseCallNotification(packageName, title, text)
 
         if (callNotification != null) {
-            Log.d(TAG, "Parsed call notification:")
-            Log.d(TAG, "  App: ${callNotification.appName}")
-            Log.d(TAG, "  Caller: ${callNotification.callerName}")
-            Log.d(TAG, "  Type: ${callNotification.callType}")
-            Log.d(TAG, "  Video: ${callNotification.isVideoCall}")
-
-            // Add to logs
+            Log.d(TAG, "Parsed: ${callNotification.callerName} - ${callNotification.callType}")
             _callLogs.add(0, callNotification)
             if (_callLogs.size > 50) {
                 _callLogs.removeAt(_callLogs.size - 1)
             }
-
-            // Notify MainActivity if it's active
-            instance?.let {
-                // Trigger UI update if needed
-            }
         } else {
-            Log.d(TAG, "Not a call notification, ignoring")
+            Log.d(TAG, "Not a call notification")
         }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         sbn ?: return
-
         val packageName = sbn.packageName
-        if (packageName !in SUPPORTED_PACKAGES) {
-            return
-        }
-
+        if (packageName !in SUPPORTED_PACKAGES) return
         Log.d(TAG, "Notification removed from $packageName")
     }
 }

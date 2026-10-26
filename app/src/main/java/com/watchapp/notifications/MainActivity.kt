@@ -46,6 +46,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnGrantPermission.setOnClickListener {
             openNotificationListenerSettings()
         }
+
+        binding.btnShowRawLogs.setOnClickListener {
+            showRawLogs()
+        }
     }
 
     private fun updatePermissionStatus() {
@@ -81,11 +85,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showRawLogs() {
+        val rawLogs = CallNotificationListener.rawLogs
+
+        if (rawLogs.isEmpty()) {
+            binding.tvLogs.text = "Chưa có notification nào từ Zalo/Messenger.\n\nHãy thử gọi điện từ Zalo hoặc Messenger để kiểm tra."
+            return
+        }
+
+        val sb = StringBuilder()
+        sb.appendLine("=== RAW NOTIFICATION LOGS ===\n")
+        sb.appendLine("(Screenshot gửi cho dev để fix parser)\n")
+
+        for (log in rawLogs.take(5)) {
+            sb.appendLine(log)
+            sb.appendLine("\n---\n")
+        }
+
+        binding.tvLogs.text = sb.toString()
+    }
+
     private fun updateLogs() {
         val logs = CallNotificationListener.callLogs
 
         if (logs.isEmpty()) {
-            binding.tvLogs.text = "Chưa có cuộc gọi nào từ Zalo/Messenger.\n\nHãy thử gọi điện từ Zalo hoặc Messenger để kiểm tra."
+            binding.tvLogs.text = "Chưa có cuộc gọi nào từ Zalo/Messenger.\n\nHãy thử gọi điện từ Zalo hoặc Messenger để kiểm tra.\n\n💡 Nếu đã gọi mà không thấy log, click \"Show Raw Logs\" để debug."
             return
         }
 
