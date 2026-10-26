@@ -47,11 +47,12 @@ class CallNotificationListener : NotificationListenerService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Cuộc gọi Zalo/Messenger",
-                NotificationManager.IMPORTANCE_HIGH
+                "Cuộc gọi đến",
+                NotificationManager.IMPORTANCE_MAX
             ).apply {
                 description = "Thông báo cuộc gọi từ Zalo và Messenger"
                 enableVibration(true)
+                setSound(null, null)
             }
             
             val notificationManager = getSystemService(NotificationManager::class.java)
@@ -117,21 +118,28 @@ class CallNotificationListener : NotificationListenerService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Create notification with caller name as title
+        val notificationText = "${call.appName}: ${call.callerName}" + 
+            if (call.isVideoCall) " (Video)" else ""
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_call)
-            .setContentTitle("📞 ${call.appName}: ${call.callerName}")
-            .setContentText("Cuộc gọi ${if (call.isVideoCall) "video" else "thoại"} đang đến")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentTitle(call.callerName)  // Tên người gọi làm title
+            .setContentText(notificationText)
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("Cuộc gọi ${if (call.isVideoCall) "video" else "thoại"} từ ${call.appName}"))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setVibrate(longArrayOf(0, 500, 200, 500))
+            .setVibrate(longArrayOf(0, 1000, 200, 1000, 200, 1000))
+            .setOngoing(true)
             .build()
 
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.notify(NOTIFICATION_ID, notification)
         
-        Log.d(TAG, "Forwarded call notification to watch")
+        Log.d(TAG, "Forwarded call notification: ${call.callerName}")
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
