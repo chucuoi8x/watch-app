@@ -16,24 +16,38 @@ object NotificationParser {
 
     private fun parseZaloCall(title: String, text: String): CallNotification? {
         // Zalo notification formats:
-        // - "Cuộc gọi đến từ [Tên]"
-        // - "[Tên] đang gọi cho bạn"
-        // - "Cuộc gọi nhỡ từ [Tên]"
-        // - "[Tên] đã gọi cho bạn"
-
-        val callerName = extractCallerName(title, text) ?: return null
+        // - Title: "[Tên]", Text: "Đang gọi đến" (incoming)
+        // - Title: "[Tên]", Text: "Cuộc gọi nhỡ" (missed)
+        // - Title: "Cuộc gọi đến từ [Tên]", Text: "..." (old format)
 
         val callType = when {
-            title.contains("đang gọi", ignoreCase = true) ||
-            title.contains("Cuộc gọi đến", ignoreCase = true) -> CallNotification.CallType.INCOMING
+            text.contains("đang gọi", ignoreCase = true) ||
+            text.contains("Đang gọi đến", ignoreCase = true) -> CallNotification.CallType.INCOMING
 
-            title.contains("nhỡ", ignoreCase = true) ||
-            title.contains("bỏ lỡ", ignoreCase = true) -> CallNotification.CallType.MISSED
+            text.contains("nhỡ", ignoreCase = true) ||
+            text.contains("bỏ lỡ", ignoreCase = true) -> CallNotification.CallType.MISSED
 
             text.contains("đã gọi", ignoreCase = true) -> CallNotification.CallType.OUTGOING
 
             else -> CallNotification.CallType.UNKNOWN
         }
+
+        // Try to extract caller name from title
+        val callerName = when {
+            // New format: Title is the caller name
+            callType == CallNotification.CallType.INCOMING && text.contains("gọi", ignoreCase = true) -> {
+                title.takeIf { it.isNotBlank() }
+            }
+            // Old format: "Cuộc gọi đến từ [Tên]"
+            title.contains("Cuộc gọi đến từ", ignoreCase = true) -> {
+                Regex("Cuộc gọi đến từ (.+)").find(title)?.groupValues?.get(1)?.trim()
+            }
+            title.contains("Cuộc gọi nhỡ từ", ignoreCase = true) -> {
+                Regex("Cuộc gọi nhỡ từ (.+)").find(title)?.groupValues?.get(1)?.trim()
+            }
+            // Fallback: use title if it looks like a name
+            else -> title.takeIf { it.isNotBlank() && !it.contains("cuộc gọi", ignoreCase = true) }
+        } ?: return null
 
         val isVideoCall = text.contains("video", ignoreCase = true)
 
